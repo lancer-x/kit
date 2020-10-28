@@ -1,0 +1,43 @@
+<?php
+if(!file_exists('sem_sem-2020-10-27.log')){exit;}
+$f = fopen('sem_sem-2020-10-27.log', 'r');
+
+$i = 0;
+$ca=[];
+while (!feof($f)) {
+    $line=fgets($f);
+    if (!strpos($line, 'appdownloadurl')) {
+        continue;
+    }
+    $value=explode(' ', $line);
+    if (!isset($value[7])) {
+        continue;
+    }
+    $str = $value[7];
+    //$str=rtrim(ltrim($str, ']'), 'uri[');
+    $a=parse_url($str);
+    if (isset($a['query'])) {
+        parse_str($a['query'], $b);
+        if (!isset($b['ca_s'])) {
+            $key = 'casnotexist';
+        } else {
+            $key = $b['ca_s'].'##'.$b['ca_n'];
+        }
+    } else {
+        $key = 'casnotexist';
+    }
+
+
+    if (isset($ca[$key])) {
+        $ca[$key]++;
+    } else {
+        $ca[$key] = 1;
+    }
+
+    if ($i % 10000 == 0) {
+        sleep(1);
+    }
+    $i++;
+
+}
+file_put_contents('aresult.log' , json_encode($ca));
